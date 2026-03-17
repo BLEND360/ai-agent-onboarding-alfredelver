@@ -1,0 +1,122 @@
+"""Fetches the top news for hackernews"""
+import asyncio 
+import aiohttp
+from typing import List
+from datetime import datetime
+from src.models.articles import Article
+from src.storage.markdown_storage import MarkdownStorage
+from src.utils.rate_limiter import RateLimiter
+
+class HackerNewsFetcher:
+
+    """"
+    Fetches top stories from HackerNews API.
+    
+    API Docs: https://github.com/HackerNews/API
+    """
+    BASE_URL = "https://hacker-news.firebaseio.com/v0"
+
+    def __init__(self):
+        self.storage = MarkdownStorage()
+        self.rate_limiter = RateLimiter(max_concurrent=10)
+
+
+    async def fetch_and_save(self, limit: int = 30) -> List[Article]:
+        """Fetch articles and save to markdown."""
+        articles = await self.fetch(limit)
+        
+        if articles:
+            self.storage.save(articles, "hackernews_articles.md")
+        
+        return articles
+
+    async def fetch(self,limit:int=30)-> List[Article]:
+        """
+        Fetch top stories from HackerNews.
+        
+        Args:
+            limit: Number of stories to fetch (default 30)
+            
+        Returns:
+            List of Article objects
+        """
+        print(f"Fetching {limit} stories from HackerNews...")
+
+        story_ids = await self._fetch_top_story_ids()
+
+        # fetch first n stories concurrently
+        articles = await self._fetch_stories(story_ids[:limit])
+
+        print(f"Fetched {len(articles)} HackerNews stories")
+        return articles
+
+    async def _fetch_top_story_ids(self)->List[int]:
+        """Fetch list of toop story ids"""
+
+        url = f"{self.BASE_URL}/topstories.json"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                story_ids = await response.json()
+                return story_ids
+
+    async def _fetch_stories(self,story_ids:List[int])->List[Article]:
+        """
+        Fetch multiple stories concurrently.
+
+        This is where async shines - fetch all at once!
+        """
+
+        # creating tasks for all stories
+        tasks = [self._fetch_story(story_id) for story_id in story_ids]
+
+        # run everything concurrently
+        stories = await asyncio.gather(*tasks)
+
+        # Filter out None
+        return [s for s in stories if s is not None]
+
+    async def _fetch_story(self,story_id:int)-> Article:
+        """Fetch single story by ID."""
+        url = f"{self.BASE_URL}/item/{story_id}.json"
+
+        try:
+            async with self.rate_limiter:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url) as response:
+                        data = await response.json()
+
+                        # if data is null
+                        if not data.get('url'):
+                            return None
+
+                        # Convert to Article
+                        return Article(
+                            title=data.get('title', 'No Title'),
+                            url=data['url'],
+                            published_at=datetime.fromtimestamp(
+                                data.get('time', 0)
+                            ),
+                            source='hackernews',
+                            summary=data.get('text', '')[:200],  # First 200 chars
+                            score=data.get('score', 0)
+                        )
+        except Exception as e:
+            print(f" Failed to fetch story {story_id}: {e}")
+            return None
+
+
+                
+        
+# testing
+async def test_fetch():
+    fetcher = HackerNewsFetcher()
+    articles = await fetcher.fetch(limit=5)
+    print(f"\n📊 Results:")
+    for article in articles:
+        print(f"  - {article.title[:50]}...")
+    
+    return articles
+
+if __name__ =='__main__':
+    asyncio.run(test_fetch())

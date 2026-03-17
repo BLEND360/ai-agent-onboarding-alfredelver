@@ -1,0 +1,11 @@
+aiohttp
+feedparser
+python-dateutil
+google-generativeai
+mcp
+pytest
+black
+isort
+pylint
+python-dotenv
+pytest-asyncio
