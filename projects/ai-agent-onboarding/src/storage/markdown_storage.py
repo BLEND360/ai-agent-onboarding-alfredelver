@@ -43,20 +43,26 @@ class MarkdownStorage:
 
           filepath = self.base_path/filename
 
-          # Write articles to fikle
-          with open(filepath,'w',encoding='utf-8') as f:
-               f.write(f'# News Article \n\n')
-               f.write(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-               f.write(f"**Total Articles:** {len(articles)}\n\n")
-               f.write("---\n\n")
-
-               # articles
+          with open(filepath, 'w', encoding='utf-8') as f:
+               f.write(f"# Articles - {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n")
+               
                for article in articles:
-                    f.write(article.to_markdown())
+                    f.write(self._format_article(article))
                     f.write("\n---\n\n")
-
-          print(f"Saved {len(articles)} articles to: {filepath}")
+          
           return filepath
+    
+    def _format_article(self, article: Article) -> str:
+        """Format single article as markdown."""
+        return f"""## {article.title}
+
+**Source:** {article.source}
+**URL:** {article.url}
+**Published:** {article.published_at}
+**Score:** {article.score if hasattr(article, 'score') else 'N/A'}
+
+{article.summary}
+"""
 
 if __name__ =="__main__":
     #  import sys

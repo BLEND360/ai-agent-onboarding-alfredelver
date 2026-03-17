@@ -415,3 +415,17 @@ Part	Meaning
 2.--cov=src	-->     Measure code coverage for the src/ directory — tracks which lines of your   
                     source code actually got executed during tests
 3.--cov-report=term-missing -->	Show the report in the terminal, and highlight which line numbers were missed (not covered by any test)
+
+# In milestone2 they are asking to edit the current markdown_storage file by using a function format_article, whats the point in it , isnt it the same as the to_markdown function being used. the idea of milestone2 is solild refactoring
+Good question. You're right that they look similar, but the point from a SOLID perspective is about the Single Responsibility Principle (SRP):
+
+Current design: Article.to_markdown() — the Article model knows how to format itself as markdown. This means the Article class has two responsibilities: holding data AND formatting output.
+
+Milestone 2 design: MarkdownStorage._format_article() — the storage class handles formatting. The Article is just a data container.
+
+Why this matters:
+
+If you later want to save articles as JSON, HTML, or CSV, you'd keep adding methods to Article (to_json(), to_html(), to_csv()). The Article class grows endlessly.
+With SOLID, each output format lives in its own storage class: MarkdownStorage._format_article(), JSONStorage._format_article(), etc. The Article stays clean.
+If the markdown format changes, you only edit the storage class — the Article model is untouched.
+In short: Same output, but the responsibility moves from the data model to the class that actually does the saving. That's the SRP refactoring they want you to practice.
