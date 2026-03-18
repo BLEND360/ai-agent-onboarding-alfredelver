@@ -416,6 +416,8 @@ Part	Meaning
                     source code actually got executed during tests
 3.--cov-report=term-missing -->	Show the report in the terminal, and highlight which line numbers were missed (not covered by any test)
 
+---------------------------------------------------------------------------------------------------------
+
 # In milestone2 they are asking to edit the current markdown_storage file by using a function format_article, whats the point in it , isnt it the same as the to_markdown function being used. the idea of milestone2 is solild refactoring
 Good question. You're right that they look similar, but the point from a SOLID perspective is about the Single Responsibility Principle (SRP):
 
@@ -429,3 +431,79 @@ If you later want to save articles as JSON, HTML, or CSV, you'd keep adding meth
 With SOLID, each output format lives in its own storage class: MarkdownStorage._format_article(), JSONStorage._format_article(), etc. The Article stays clean.
 If the markdown format changes, you only edit the storage class — the Article model is untouched.
 In short: Same output, but the responsibility moves from the data model to the class that actually does the saving. That's the SRP refactoring they want you to practice.
+
+---------------------------------------------------------------------------------------------------
+# ABC from the abc module is Python's built-in Abstract Base Class. It's part of the standard library module abc (Abstract Base Classes).
+
+When a class inherits from ABC, it becomes an abstract base class, meaning:
+
+You cannot instantiate it directly
+You can define abstract methods (using @abstractmethod) that subclasses must implement
+It serves as a contract/interface for subclasses
+Quick example:
+
+
+from abc import ABC, abstractmethod
+
+class Animal(ABC):
+    @abstractmethod
+    def speak(self):
+        pass  # subclasses MUST implement this
+
+class Dog(Animal):
+    def speak(self):
+        return "Woof!"
+
+#Animal()  → TypeError: Can't instantiate abstract class
+Dog().speak()  # → "Woof!"
+
+ABC is basically a blueprint or template for other classes.
+
+Analogy: Think of it like a job description. A job description says "the person in this role MUST do X, Y, and Z" — but the job description itself isn't a person. You can't hire a job description. You hire a real person who fulfills those requirements.
+
+Similarly:
+
+ABC = the job description (defines what methods must exist)
+@abstractmethod = a required responsibility ("you MUST do this")
+A subclass = the actual employee who does the work
+
+#The "job description" — can't be used directly
+class Chef(ABC):
+    @abstractmethod
+    def cook(self):  # "You MUST know how to cook"
+        pass
+
+#The actual "employee" — does the real work
+class ItalianChef(Chef):
+    def cook(self):
+        return "Making pasta!"
+Chef() → Error! You can't hire a job description.
+ItalianChef() → Works! This is a real chef who knows how to cook.
+Why bother? It prevents bugs. If someone creates a new chef class but forgets to define cook(), Python will immediately throw an error instead of failing later at runtime. It's a safety net.
+
+----------------------------------------------------------------------------------------------------------
+# what is super().__init__
+super().__init__() calls the parent class's constructor (its __init__ method).
+
+Analogy: Think of it like inheriting a family business. Before you add your own twist, you first set up everything your parents already established.
+
+
+class Animal:
+    def __init__(self):
+        self.alive = True  # all animals are alive
+
+class Dog(Animal):
+    def __init__(self, name):
+        super().__init__()  # "First, set up the Animal stuff (alive=True)"
+        self.name = name    # "Now add my own Dog stuff"
+super() = "my parent class"
+.__init__() = "run their setup"
+Without it, you'd miss the parent's setup:
+
+
+dog = Dog("Buddy")
+dog.name   # → "Buddy"
+dog.alive  # → True (because super().__init__() set it up)
+If you skipped super().__init__(), then dog.alive would crash with an AttributeError because it was never set.
+
+In short: "Before I do my own setup, let my parent do theirs first."

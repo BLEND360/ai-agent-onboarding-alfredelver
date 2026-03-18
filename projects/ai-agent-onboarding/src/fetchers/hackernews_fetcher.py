@@ -4,20 +4,21 @@ import aiohttp
 from typing import List
 from datetime import datetime
 from src.models.articles import Article
-from src.storage.markdown_storage import MarkdownStorage
 from src.utils.rate_limiter import RateLimiter
+from src.fetchers.base_fetcher import BaseFetcher
 
-class HackerNewsFetcher:
+class HackerNewsFetcher(BaseFetcher):
 
     """"
     Fetches top stories from HackerNews API.
+    Inherits from BaseFetcher
+    Only implements source specific logic
     
     API Docs: https://github.com/HackerNews/API
     """
-    BASE_URL = "https://hacker-news.firebaseio.com/v0"
-
-    def __init__(self):
-        self.storage = MarkdownStorage()
+    
+    def __init__(self, transformer, storage):
+        super().__init__(transformer, storage)
         self.rate_limiter = RateLimiter(max_concurrent=10)
 
 
@@ -104,6 +105,29 @@ class HackerNewsFetcher:
         except Exception as e:
             print(f" Failed to fetch story {story_id}: {e}")
             return None
+        
+    async def fetch_articles(self)->List[Article]:
+        url = "https://hacker-news.firebaseio.com/v0/topstories.json"
+        async with aiohttp.ClientSession() as session:
+            # Getting top story IDs
+            async with session.get(url) as response:
+                story_ids = await response.json()
+            
+            # Fetch first 30 stories
+            stories = []
+            for story_id in story_ids[:30]:
+                item_url = f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
+                async with session.get(item_url) as response:
+                    item = await response.json()
+                    if item:
+                        stories.append(item)
+            
+            # Transform using injected transformer
+            return self.transformer.transform_hackernews(stories)
+        
+    def get_source_name(self) -> str:
+        """Return source name."""
+        return "hackernews"
 
 
                 

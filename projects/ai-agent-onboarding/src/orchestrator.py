@@ -4,7 +4,7 @@ from typing import List
 from src.models.articles import Article
 from src.fetchers.hackernews_fetcher import HackerNewsFetcher
 from src.fetchers.rss_fetcher import RSSFetcher
-from src.storage.markdown_storage import MarkdownStorage
+from src.fetchers.github_trending_fetcher import GithubTrendingFetcher
 
 class FetchOrchestrator:
     """
@@ -13,28 +13,14 @@ class FetchOrchestrator:
     Coordinates HackerNews, RSS, and other fetchers.
     """
     
-    def __init__(self):
+    def __init__(self, transformer, storage):
         """Initialize orchestrator with all fetchers."""
-        self.storage = MarkdownStorage()
-        self.fetchers = []
-
-        #adding fetchers
-        self._setup_fetchers()
-
-    def _setup_fetchers(self):
-        """Setup all news fetchers."""
-        # Hacker
-        self.fetchers.append(
-            (
-            'HackerNews',HackerNewsFetcher()
-            )
-        )
-
-        self.fetchers.append(
-            (
-                'HN RSS',RSSFetcher('https://hnrss.org/frontpage')
-            )
-        )
+        self.storage = storage
+        self.fetchers = [
+            ('HackerNews', HackerNewsFetcher(transformer, storage)),
+            ('HN RSS', RSSFetcher('https://hnrss.org/frontpage', transformer, storage)),
+            ('GitHub Trending', GithubTrendingFetcher(transformer, storage)),
+        ]
 
     async def fetch_all(self) -> List[Article]:
         """
@@ -49,11 +35,11 @@ class FetchOrchestrator:
         # creating task for all fetchers
         tasks = []
         for name, fetcher in self.fetchers:
-            if isinstance(fetcher,HackerNewsFetcher):
-                task = fetcher.fetch(limit=30)
-            else:
-                task = fetcher.fetch()
-
+            # if isinstance(fetcher,HackerNewsFetcher):
+            #     task = fetcher.fetch(limit=30)
+            # else:
+            #     task = fetcher.fetch()
+            task = fetcher.fetch_and_save()
             tasks.append(task)
 
         # Fetching everything concurrently
