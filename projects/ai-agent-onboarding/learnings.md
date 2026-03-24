@@ -96,8 +96,8 @@ You'll often see coro as a variable name in Python's asyncio internals and docs,
 # tempfile.TemporaryDirectory() 
 creates a temporary folder that automatically deletes itself when you're done with it.Used in pytests
 
-# 
-What does this mean loop = asyncio.get_event_loop()
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# What does this mean loop = asyncio.get_event_loop()
 asyncio.get_event_loop() retrieves the current asyncio event loop — the core scheduler that runs async/await coroutines, I/O callbacks, and other asynchronous tasks.
 
 What's an event loop? It's a single-threaded loop that:
@@ -128,7 +128,8 @@ or even simpler, skip storing the loop entirely:
 feed = await asyncio.to_thread(feedparser.parse, self.feed_url)
 Both avoid the deprecation warning and are cleaner for async contexts.
 
-What is the convention used with functions strating with one underscore and some other with two underscore and using camelcase etc
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# What is the convention used with functions strating with one underscore and some other with two underscore and using camelcase etc
 Great question — here's a quick breakdown of Python naming conventions:
 
 Function/Method Naming
@@ -157,66 +158,9 @@ __double = actively prevents accidental override in subclasses (rarely needed)
 __dunders__ = reserved for Python's own protocols — never invent your own
 If you see camelCase in a Python codebase, it's typically a code smell indicating the author came from Java/JS, or it's wrapping an external API that uses that convention.
 
-venv) acelver@LAPTOP-AMSKJ253:/mnt/c/Users/AlfredElver/Downloads/AI Upskill Project/projects/ai-agent-onboarding$ python -m src.fetchers.rss_fetcher
-Traceback (most recent call last):
-  File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
-    return _run_code(code, main_globals, None,
-  File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
-    exec(code, run_globals)
-  File "/mnt/c/Users/AlfredElver/Downloads/AI Upskill Project/projects/ai-agent-onboarding/src/fetchers/rss_fetcher.py", line 7, in <module>
-    from dateutil import parser as date_parser
-ModuleNotFoundError: No module named 'dateutil'
-(venv) acelver@LAPTOP-AMSKJ253:/mnt/c/Users/AlfredElver/Downloads/AI Upskill Project/projects/ai-agent-onboarding$ pip install dateutil
-ERROR: Could not find a version that satisfies the requirement dateutil (from versions: none)
-ERROR: No matching distribution found for dateutil
-The package name on PyPI is different from the import name. Install it as:
 
-
-pip install python-dateutil
-The import is from dateutil import ... but the pip package is called python-dateutil.
-
-You'll likely also need feedparser if you haven't installed it yet:
-
-
-pip install python-dateutil feedparser
-add to requirements.txt
-Read c:\Users\AlfredElver\Downloads\AI Upskill Project\projects\ai-agent-onboarding\requirements.txt
-Edit c:\Users\AlfredElver\Downloads\AI Upskill Project\projects\ai-agent-onboarding\requirements.txt
-Added 1 line
-Added python-dateutil to requirements.txt.
-
-(venv) acelver@LAPTOP-AMSKJ253:/mnt/c/Users/AlfredElver/Downloads/AI Upskill Project/projects/ai-agent-onboarding$ python -m src.fetchers.rss_fetcher
-fetching from urlhttps://hnrss.org/frontpage
-Fetched 20 RSS articles
-Traceback (most recent call last):
-  File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
-    return _run_code(code, main_globals, None,
-  File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
-    exec(code, run_globals)
-  File "/mnt/c/Users/AlfredElver/Downloads/AI Upskill Project/projects/ai-agent-onboarding/src/fetchers/rss_fetcher.py", line 113, in <module>
-    asyncio.run(test_rss())
-  File "/usr/lib/python3.10/asyncio/runners.py", line 44, in run
-    return loop.run_until_complete(main)
-  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
-    return future.result()
-  File "/mnt/c/Users/AlfredElver/Downloads/AI Upskill Project/projects/ai-agent-onboarding/src/fetchers/rss_fetcher.py", line 106, in test_rss
-    articles = await fetcher.fetch_and_save()
-  File "/mnt/c/Users/AlfredElver/Downloads/AI Upskill Project/projects/ai-agent-onboarding/src/fetchers/rss_fetcher.py", line 97, in fetch_and_save
-    self.storage.save(articles, filename)
-  File "/mnt/c/Users/AlfredElver/Downloads/AI Upskill Project/projects/ai-agent-onboarding/src/storage/markdown_storage.py", line 44, in save
-    filepath = self.base_path/filename
-AttributeError: 'list' object has no attribute 'base_path'
-Read c:\Users\AlfredElver\Downloads\AI Upskill Project\projects\ai-agent-onboarding\src\storage\markdown_storage.py
-The problem is in rss_fetcher.py:26 — you're assigning the class instead of creating an instance:
-
-
-self.storage = MarkdownStorage    # the class itself
-self.storage = MarkdownStorage()  # an instance ← what you need
-Edit c:\Users\AlfredElver\Downloads\AI Upskill Project\projects\ai-agent-onboarding\src\fetchers\rss_fetcher.py
-Modified
-Missing parentheses () — MarkdownStorage without them is just a reference to the class, not an instance. When save() was called on the class, self became the articles list instead of a MarkdownStorage object, which is why it said 'list' object has no attribute 'base_path'. Try running it again.
-
-what is semaphore here
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# what is semaphore here
 Read c:\Users\AlfredElver\Downloads\AI Upskill Project\projects\ai-agent-onboarding\src\utils\rate_limiter.py
 A semaphore is a concurrency primitive that acts like a counter-based lock. Think of it like a bouncer at a club with a max capacity.
 
@@ -300,85 +244,10 @@ Tests (like your file) — verify expected outcomes
 Debugging — catch impossible states early during development
 Important: assert statements are stripped out when Python runs with the -O (optimize) flag, so never use them for production validation like checking user input. Use if/raise for that instead.
 
-(venv) acelver@LAPTOP-AMSKJ253:/mnt/c/Users/AlfredElver/Downloads/AI Upskill Project/projects/ai-agent-onboarding$ python -m src.orchestrator
-
-Starting fetch from all sources...
-   Sources: 2
-Fetching 30 stories from HackerNews...
-fetching from urlhttps://hnrss.org/frontpage
-^Z
-[3]+  Stopped                 python -m src.orchestrator
 
 
-This was running for hours and didnt complete so i terminated
-Let me check the orchestrator and HN fetcher to find the bottleneck.
-
-Agent:Find orchestrator and HN fetcher
-IN
-In the project at c:\Users\AlfredElver\Downloads\AI Upskill Project\projects\ai-agent-onboarding, find and read:
-1. src/orchestrator.py (or __init__.py or __main__.py in src/orchestrator/)
-2. Any HackerNews fetcher file (likely in src/fetchers/)
-
-Read the full contents of both files and report back.
-Globpattern: "**/src/fetchers/*"
-Found 2 files
-Read hackernews_fetcher.py
-Read c:\Users\AlfredElver\Downloads\AI Upskill Project\projects\ai-agent-onboarding\src\fetchers\hackernews_fetcher.py
-Read c:\Users\AlfredElver\Downloads\AI Upskill Project\projects\ai-agent-onboarding\src\orchestrator.py
-The likely culprit is in hackernews_fetcher.py:85 — a new aiohttp.ClientSession() is created for every single story (30 times). Each session opens a new TCP connection with SSL handshake, which is very slow.
-
-The fix is to create one session and reuse it for all requests:
-
-Edit c:\Users\AlfredElver\Downloads\AI Upskill Project\projects\ai-agent-onboarding\src\fetchers\hackernews_fetcher.py
-Removed 2 lines
-Now update the fetch method to create one shared session:
-
-Edit c:\Users\AlfredElver\Downloads\AI Upskill Project\projects\ai-agent-onboarding\src\fetchers\hackernews_fetcher.py
-Added 1 line
-The fix: one ClientSession shared across all 30+ requests instead of creating a new one per story.
-
-Why it was hanging: Each aiohttp.ClientSession() opens a fresh TCP + SSL connection. With 30 stories, that's 30 separate SSL handshakes happening concurrently, which on WSL can be extremely slow or even timeout. A single session reuses one connection (HTTP keep-alive), making it dramatically faster.
-
-Try running it again — it should complete in seconds now.
-
-Can u reverse the changes u made last
-Read c:\Users\AlfredElver\Downloads\AI Upskill Project\projects\ai-agent-onboarding\src\fetchers\hackernews_fetcher.py
-Edit c:\Users\AlfredElver\Downloads\AI Upskill Project\projects\ai-agent-onboarding\src\fetchers\hackernews_fetcher.py
-Added 1 line
-Reverted — the file is back to the original with separate ClientSession per request. Note that this was the code causing the hang, so the performance issue will remain. Let me know if you'd like to try a different approach to fix it.
-
-Check the code written in orchestrato.py and the code given in mileston-1-async-fetcher* file from line 932 and see if there are major differences
-Read c:\Users\AlfredElver\Downloads\AI Upskill Project\projects\ai-agent-onboarding\src\orchestrator.py
-Globpattern: "**/milestone*async*"
-Found 1 file
-Read c:\Users\AlfredElver\Downloads\AI Upskill Project\milestone-1-async-fetcher.md (from line 933)
-There's one major bug in your orchestrator. Here's the comparison:
-
-Bug: Articles never get added to all_articles
-Your code (line 64-68):
-
-
-for (name, _), result in zip(self.fetchers, results):
-    if isinstance(result,Exception):
-        print(f"{name} , failed")
-    else:
-        print(f'{name}:{len(results)} articles')  # ← wrong variable + missing extend
-Reference code (line 997-1002):
-
-
-for (name, _), result in zip(self.fetchers, results):
-    if isinstance(result, Exception):
-        print(f"  {name} failed: {result}")
-    else:
-        print(f" {name}: {len(result)} articles")   # ← len(result) not len(results)
-        all_articles.extend(result)                  # ← THIS LINE IS MISSING
-Two issues:
-
-all_articles.extend(result) is missing — you never add the fetched articles to all_articles, so it's always empty. That's why Total: 0 articles and nothing gets saved.
-len(results) should be len(result) — you're printing the count of all result sets instead of the current fetcher's article count.
-Want me to fix these?
-
-what does assert function do ?
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# what does assert function do ?
 assert checks if a condition is True. If it is, nothing happens. If it's False, it crashes with an AssertionError.
 
 
@@ -416,7 +285,7 @@ Part	Meaning
                     source code actually got executed during tests
 3.--cov-report=term-missing -->	Show the report in the terminal, and highlight which line numbers were missed (not covered by any test)
 
----------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # In milestone2 they are asking to edit the current markdown_storage file by using a function format_article, whats the point in it , isnt it the same as the to_markdown function being used. the idea of milestone2 is solild refactoring
 Good question. You're right that they look similar, but the point from a SOLID perspective is about the Single Responsibility Principle (SRP):
@@ -432,7 +301,7 @@ With SOLID, each output format lives in its own storage class: MarkdownStorage._
 If the markdown format changes, you only edit the storage class — the Article model is untouched.
 In short: Same output, but the responsibility moves from the data model to the class that actually does the saving. That's the SRP refactoring they want you to practice.
 
----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # ABC from the abc module is Python's built-in Abstract Base Class. It's part of the standard library module abc (Abstract Base Classes).
 
 When a class inherits from ABC, it becomes an abstract base class, meaning:
@@ -481,7 +350,7 @@ Chef() → Error! You can't hire a job description.
 ItalianChef() → Works! This is a real chef who knows how to cook.
 Why bother? It prevents bugs. If someone creates a new chef class but forgets to define cook(), Python will immediately throw an error instead of failing later at runtime. It's a safety net.
 
-----------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # what is super().__init__
 super().__init__() calls the parent class's constructor (its __init__ method).
 
@@ -507,3 +376,70 @@ dog.alive  # → True (because super().__init__() set it up)
 If you skipped super().__init__(), then dog.alive would crash with an AttributeError because it was never set.
 
 In short: "Before I do my own setup, let my parent do theirs first."
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# What is polymorphism
+Polymorphism means "many forms" — it's the ability to use different objects through the same interface.
+
+Your test file is actually a great example of it:
+
+
+fetchers = [
+    HackerNewsFetcher(transformer, storage),
+    RSSFetcher("https://hnrss.org/frontpage", transformer, storage),
+    GithubTrendingFetcher(transformer, storage)
+]
+
+for fetcher in fetchers:
+    articles = await fetcher.fetch_articles()  # same method, different behavior
+    source = fetcher.get_source_name()          # same method, different result
+Three different classes, but you call .fetch_articles() and .get_source_name() on all of them without caring which one you're talking to. Each fetcher does something different internally (scrapes GitHub, calls HackerNews API, parses RSS), but the calling code doesn't need to know that.
+
+Why it matters:
+
+You can add a new fetcher (e.g., RedditFetcher) without changing the loop
+Code that uses fetchers doesn't need if/else checks for each type
+This is exactly the Liskov Substitution Principle your test is verifying — any subclass of BaseFetcher can be swapped in and everything still work
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# MOck and AsyncMock
+Mock and AsyncMock are fake objects from Python's testing library that stand in for real objects.
+
+Mock — creates a fake object that records how it's used (what methods were called, with what arguments) and returns fake values instead of doing real work.
+
+AsyncMock — same thing, but for async functions. It returns an awaitable so you can use await on it.
+
+Why use them? Your test shouldn't actually hit the HackerNews API or write files to disk. Mocks let you test your orchestrator logic in isolation — fast, reliable, no network needed.
+
+Quick example:
+
+
+storage = Mock()                          # fake storage — doesn't write files
+fetcher = AsyncMock(return_value=[article])  # fake fetcher — returns a preset article
+
+await fetcher.fetch_articles()  # returns [article] instantly, no HTTP call
+storage.save(articles, "test.md")  # records the call but writes nothing
+
+storage.save.assert_called_once()  # ✅ verify save was called
+
+----------------------------------------------------------------------------------------------
+# Classmethod
+
+@classmethod is a decorator that makes a method belong to the class itself, not to an instance.
+
+The key difference: it receives cls (the class) as its first argument instead of self (an instance).
+
+
+class FetcherFactory:
+    @classmethod
+    def create(cls, name):    # cls = FetcherFactory (the class)
+        ...
+
+# Call it on the class directly — no instance needed:
+fetcher = FetcherFactory.create("hackernews")
+Without @classmethod, you'd have to create an instance first:
+
+
+factory = FetcherFactory()        # unnecessary object
+fetcher = factory.create("hackernews")
+When it's useful: Factory methods (like yours), alternative constructors, or any method that doesn't need instance data (self) but logically belongs to the class.

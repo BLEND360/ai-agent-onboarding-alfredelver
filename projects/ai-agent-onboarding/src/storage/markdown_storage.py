@@ -3,8 +3,9 @@ from pathlib import Path
 from typing import List
 from datetime import datetime
 from src.models.articles import Article
+from src.storage.base_storage import ArticleStorage
 
-class MarkdownStorage:
+class MarkdownStorage(ArticleStorage):
     """
     Saves articles to markdown files.
     

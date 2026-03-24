@@ -6,8 +6,10 @@ from datetime import datetime
 from src.models.articles import Article
 from src.utils.rate_limiter import RateLimiter
 from src.fetchers.base_fetcher import BaseFetcher
+from src.strategies.rate_limit_strategy import SemaphoreStrategy
 
 class HackerNewsFetcher(BaseFetcher):
+    BASE_URL = "https://hacker-news.firebaseio.com/v0"
 
     """"
     Fetches top stories from HackerNews API.
@@ -17,9 +19,10 @@ class HackerNewsFetcher(BaseFetcher):
     API Docs: https://github.com/HackerNews/API
     """
     
-    def __init__(self, transformer, storage):
+    def __init__(self, transformer, storage,rate_limiter=None):
         super().__init__(transformer, storage)
-        self.rate_limiter = RateLimiter(max_concurrent=10)
+        # self.rate_limiter = RateLimiter(max_concurrent=10)
+        self.rate_limiter = rate_limiter or SemaphoreStrategy(10)
 
 
     async def fetch_and_save(self, limit: int = 30) -> List[Article]:
@@ -108,22 +111,26 @@ class HackerNewsFetcher(BaseFetcher):
         
     async def fetch_articles(self)->List[Article]:
         url = "https://hacker-news.firebaseio.com/v0/topstories.json"
-        async with aiohttp.ClientSession() as session:
-            # Getting top story IDs
-            async with session.get(url) as response:
-                story_ids = await response.json()
-            
-            # Fetch first 30 stories
-            stories = []
-            for story_id in story_ids[:30]:
-                item_url = f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
-                async with session.get(item_url) as response:
-                    item = await response.json()
-                    if item:
-                        stories.append(item)
-            
-            # Transform using injected transformer
-            return self.transformer.transform_hackernews(stories)
+        await self.rate_limiter.acquire()
+        try:
+            async with aiohttp.ClientSession() as session:
+                # Getting top story IDs
+                async with session.get(url) as response:
+                    story_ids = await response.json()
+                
+                # Fetch first 30 stories
+                stories = []
+                for story_id in story_ids[:30]:
+                    item_url = f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
+                    async with session.get(item_url) as response:
+                        item = await response.json()
+                        if item:
+                            stories.append(item)
+                
+                # Transform using injected transformer
+                return self.transformer.transform_hackernews(stories)
+        finally:
+            self.rate_limiter.release()
         
     def get_source_name(self) -> str:
         """Return source name."""
