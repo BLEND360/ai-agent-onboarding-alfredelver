@@ -8,7 +8,9 @@ from src.storage.markdown_storage import MarkdownStorage
 @pytest.mark.asyncio
 async def test_fetch_returns_articles():
     """Test that fetch returns list of articles."""
-    fetcher = HackerNewsFetcher()
+    transformer = ArticleTransformer()
+    storage = MarkdownStorage()
+    fetcher = HackerNewsFetcher(transformer, storage)
     articles = await fetcher.fetch(limit=5)
 
     # Should get some articles
@@ -28,7 +30,9 @@ async def test_fetch_concurrent():
     """Test that fetch is fast (concurrent)."""
     import time
 
-    fetcher = HackerNewsFetcher()
+    transformer = ArticleTransformer()
+    storage = MarkdownStorage()
+    fetcher = HackerNewsFetcher(transformer, storage)
 
     start = time.time()
     articles = await fetcher.fetch(limit=10)
@@ -40,18 +44,14 @@ async def test_fetch_concurrent():
 
     print(f" Fetched {len(articles)} articles in {elapsed:.2f}s")
 
+
 @pytest.mark.asyncio
 async def test_hackernews_fetcher():
     """Test HackerNews fetcher with new architecture."""
     transformer = ArticleTransformer()
     storage = MarkdownStorage("data/test_articles")
-    fetcher = HackerNewsFetcher(
-        transformer=transformer,
-        storage=storage
-    )
+    fetcher = HackerNewsFetcher(transformer=transformer, storage=storage)
     articles = await fetcher.fetch()
 
-    assert len(articles)>0
-    assert all(hasattr(a,'title') for a in articles)
-    
-        
+    assert len(articles) > 0
+    assert all(hasattr(a, "title") for a in articles)

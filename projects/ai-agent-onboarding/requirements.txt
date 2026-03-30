@@ -1,7 +1,6 @@
 aiohttp
 feedparser
-python-dateutil
-google-generativeai
+python-dateutily
 mcp
 pytest
 black
@@ -9,3 +8,5 @@ isort
 pylint
 python-dotenv
 pytest-asyncio
+google-genai
+bs4

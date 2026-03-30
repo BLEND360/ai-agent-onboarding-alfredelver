@@ -443,3 +443,21 @@ Without @classmethod, you'd have to create an instance first:
 factory = FetcherFactory()        # unnecessary object
 fetcher = factory.create("hackernews")
 When it's useful: Factory methods (like yours), alternative constructors, or any method that doesn't need instance data (self) but logically belongs to the class.
+
+
+# Async using new google genai aio models
+google-generativeai → google-genai: Google deprecated the old package; the new one uses a cleaner Client pattern and is the only one receiving updates and new model support.
+
+client.models → client.aio.models: Our agent methods are async, so we use the async client to get true non-blocking Gemini calls instead of faking async with sync code underneath.
+
+# Coroutine
+A coroutine is a function that can pause and resume. When you call an async def function, it doesn't run immediately — it returns a coroutine object (a "promise" of work). await actually executes it and gives you the result.
+
+
+async def get_data():
+    return "hello"
+
+result = get_data()       # coroutine object (not executed yet)
+result = await get_data() # "hello" (actually runs)
+
+Any function that calls an async function must await it — this rule chains all the way up. Miss one await and you get the coroutine object instead of the result.
