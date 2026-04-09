@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l \"/c/Users/AlfredElver/Downloads/AI Upskill Project/projects/ai-agent-onboarding/src\"/**/*.py)"
+    ]
+  }
+}

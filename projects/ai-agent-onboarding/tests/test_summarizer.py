@@ -1,23 +1,22 @@
 import asyncio
 import pytest
-from unittest.mock import AsyncMock, patch
+from pathlib import Path
 from src.agents.summarizer_agent import SummarizerAgent
 
 
 @pytest.mark.asyncio
-@patch.object(
-    SummarizerAgent,
-    "_call_llm",
-    new_callable=AsyncMock,
-    return_value="AI continues to advance rapidly with new LLM releases and research breakthroughs.",
-)
-async def test(mock_llm):
+async def test():
+    # Rate limit: space out from prior API calls
+    await asyncio.sleep(13)
+
     agent = SummarizerAgent()
     await agent.execute(
         input_path="data/context/filtered_articles.md",
         output_path="data/context/summary.md",
     )
-    assert mock_llm.called
+
+    # Verify output was created
+    assert Path("data/context/summary.md").exists()
 
 
 if __name__ == "__main__":
