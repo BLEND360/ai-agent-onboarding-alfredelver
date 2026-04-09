@@ -2,6 +2,7 @@ import pytest
 import asyncio
 from src.agents.news_filter_agent import NewsFilterAgent
 
+
 @pytest.mark.asyncio
 async def test_filter():
     """Test filtering agent."""

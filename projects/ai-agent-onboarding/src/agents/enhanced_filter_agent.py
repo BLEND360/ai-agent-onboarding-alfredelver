@@ -1,32 +1,33 @@
-
 """News filter agent with tool use."""
+
 from src.agents.news_filter_agent import NewsFilterAgent
 from src.tools.calculator import calculator, CALCULATOR_SCHEMA
 from src.tools.websearch import web_search, WEB_SEARCH_SCHEMA
 import json
 from typing import Dict
 
+
 class EnhancedFilterAgent(NewsFilterAgent):
     """
     Filter agent that can use tools.
-    
+
     Extends NewsFilterAgent with calculator and search.
     """
-    
+
     def __init__(self):
         # Initialize with tools
         super().__init__()
         self.tools = [CALCULATOR_SCHEMA, WEB_SEARCH_SCHEMA]
         self._configure_model()  # Reconfigure with tools
-        
+
         # Register tool functions
-        self.register_tool_function('calculator', calculator)
-        self.register_tool_function('web_search', web_search)
-    
+        self.register_tool_function("calculator", calculator)
+        self.register_tool_function("web_search", web_search)
+
     async def _judge_relevance(self, article: Dict) -> Dict:
         """
         Judge relevance with tool access.
-        
+
         LLM can now call calculator or search if needed.
         """
         prompt = f"""You are an AI/ML news analyst with access to tools.
@@ -47,24 +48,24 @@ Output JSON:
   "key_topics": ["topic1", "topic2"]
 }}
 """
-        
+
         try:
             # Use tool-enabled LLM call
             response = await self._call_llm_with_tools(prompt)
-            
+
             # Parse JSON (same as before)
             json_text = response
-            if '```json' in response:
-                json_text = response.split('```json')[1].split('```')[0]
-            
+            if "```json" in response:
+                json_text = response.split("```json")[1].split("```")[0]
+
             judgment = json.loads(json_text.strip())
             return judgment
-            
+
         except Exception as e:
             print(f" Error: {e}")
             return {
-                'relevant': False,
-                'relevance_score': 0,
-                'reasoning': f'Error: {e}',
-                'key_topics': []
+                "relevant": False,
+                "relevance_score": 0,
+                "reasoning": f"Error: {e}",
+                "key_topics": [],
             }

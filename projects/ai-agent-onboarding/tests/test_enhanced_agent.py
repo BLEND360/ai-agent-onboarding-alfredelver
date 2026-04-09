@@ -2,6 +2,7 @@ import asyncio
 from src.agents.enhanced_filter_agent import EnhancedFilterAgent
 import pytest
 
+
 @pytest.mark.asyncio
 async def test_tools():
     """Test agent with tools."""

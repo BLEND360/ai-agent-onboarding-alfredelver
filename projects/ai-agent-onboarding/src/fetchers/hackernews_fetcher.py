@@ -1,5 +1,6 @@
 """Fetches the top news for hackernews"""
-import asyncio 
+
+import asyncio
 import aiohttp
 from typing import List
 from datetime import datetime
@@ -7,6 +8,7 @@ from src.models.articles import Article
 from src.utils.rate_limiter import RateLimiter
 from src.fetchers.base_fetcher import BaseFetcher
 from src.strategies.rate_limit_strategy import SemaphoreStrategy
+
 
 class HackerNewsFetcher(BaseFetcher):
     BASE_URL = "https://hacker-news.firebaseio.com/v0"
@@ -18,29 +20,28 @@ class HackerNewsFetcher(BaseFetcher):
     
     API Docs: https://github.com/HackerNews/API
     """
-    
-    def __init__(self, transformer, storage,rate_limiter=None):
+
+    def __init__(self, transformer, storage, rate_limiter=None):
         super().__init__(transformer, storage)
         # self.rate_limiter = RateLimiter(max_concurrent=10)
         self.rate_limiter = rate_limiter or SemaphoreStrategy(10)
 
-
     async def fetch_and_save(self, limit: int = 30) -> List[Article]:
         """Fetch articles and save to markdown."""
         articles = await self.fetch(limit)
-        
+
         if articles:
             self.storage.save(articles, "hackernews_articles.md")
-        
+
         return articles
 
-    async def fetch(self,limit:int=30)-> List[Article]:
+    async def fetch(self, limit: int = 30) -> List[Article]:
         """
         Fetch top stories from HackerNews.
-        
+
         Args:
             limit: Number of stories to fetch (default 30)
-            
+
         Returns:
             List of Article objects
         """
@@ -54,7 +55,7 @@ class HackerNewsFetcher(BaseFetcher):
         print(f"Fetched {len(articles)} HackerNews stories")
         return articles
 
-    async def _fetch_top_story_ids(self)->List[int]:
+    async def _fetch_top_story_ids(self) -> List[int]:
         """Fetch list of toop story ids"""
 
         url = f"{self.BASE_URL}/topstories.json"
@@ -64,7 +65,7 @@ class HackerNewsFetcher(BaseFetcher):
                 story_ids = await response.json()
                 return story_ids
 
-    async def _fetch_stories(self,story_ids:List[int])->List[Article]:
+    async def _fetch_stories(self, story_ids: List[int]) -> List[Article]:
         """
         Fetch multiple stories concurrently.
 
@@ -80,7 +81,7 @@ class HackerNewsFetcher(BaseFetcher):
         # Filter out None
         return [s for s in stories if s is not None]
 
-    async def _fetch_story(self,story_id:int)-> Article:
+    async def _fetch_story(self, story_id: int) -> Article:
         """Fetch single story by ID."""
         url = f"{self.BASE_URL}/item/{story_id}.json"
 
@@ -91,25 +92,23 @@ class HackerNewsFetcher(BaseFetcher):
                         data = await response.json()
 
                         # if data is null
-                        if not data.get('url'):
+                        if not data.get("url"):
                             return None
 
                         # Convert to Article
                         return Article(
-                            title=data.get('title', 'No Title'),
-                            url=data['url'],
-                            published_at=datetime.fromtimestamp(
-                                data.get('time', 0)
-                            ),
-                            source='hackernews',
-                            summary=data.get('text', '')[:200],  # First 200 chars
-                            score=data.get('score', 0)
+                            title=data.get("title", "No Title"),
+                            url=data["url"],
+                            published_at=datetime.fromtimestamp(data.get("time", 0)),
+                            source="hackernews",
+                            summary=data.get("text", "")[:200],  # First 200 chars
+                            score=data.get("score", 0),
                         )
         except Exception as e:
             print(f" Failed to fetch story {story_id}: {e}")
             return None
-        
-    async def fetch_articles(self)->List[Article]:
+
+    async def fetch_articles(self) -> List[Article]:
         url = "https://hacker-news.firebaseio.com/v0/topstories.json"
         await self.rate_limiter.acquire()
         try:
@@ -117,28 +116,28 @@ class HackerNewsFetcher(BaseFetcher):
                 # Getting top story IDs
                 async with session.get(url) as response:
                     story_ids = await response.json()
-                
+
                 # Fetch first 30 stories
                 stories = []
                 for story_id in story_ids[:30]:
-                    item_url = f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
+                    item_url = (
+                        f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
+                    )
                     async with session.get(item_url) as response:
                         item = await response.json()
                         if item:
                             stories.append(item)
-                
+
                 # Transform using injected transformer
                 return self.transformer.transform_hackernews(stories)
         finally:
             self.rate_limiter.release()
-        
+
     def get_source_name(self) -> str:
         """Return source name."""
         return "hackernews"
 
 
-                
-        
 # testing
 async def test_fetch():
     fetcher = HackerNewsFetcher()
@@ -146,8 +145,9 @@ async def test_fetch():
     print(f"\n📊 Results:")
     for article in articles:
         print(f"  - {article.title[:50]}...")
-    
+
     return articles
 
-if __name__ =='__main__':
+
+if __name__ == "__main__":
     asyncio.run(test_fetch())

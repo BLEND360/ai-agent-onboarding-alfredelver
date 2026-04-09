@@ -4,6 +4,7 @@ from src.storage.markdown_storage import MarkdownStorage
 import asyncio
 import pytest
 
+
 @pytest.mark.asyncio
 async def test_github():
     transformer = ArticleTransformer()

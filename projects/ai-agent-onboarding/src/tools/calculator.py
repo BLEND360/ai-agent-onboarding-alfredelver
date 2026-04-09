@@ -4,27 +4,19 @@ from typing import Dict, Any
 def calculator(expression: str) -> Dict[str, Any]:
     """
     Evaluate mathematical expression.
-    
+
     Args:
         expression: Math expression (e.g., "2 + 2", "10 * 5")
-        
+
     Returns:
         Dict with result or error
     """
     try:
         # Safe eval with limited scope
         result = eval(expression, {"__builtins__": {}}, {})
-        return {
-            "success": True,
-            "result": result,
-            "expression": expression
-        }
+        return {"success": True, "result": result, "expression": expression}
     except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-            "expression": expression
-        }
+        return {"success": False, "error": str(e), "expression": expression}
 
 
 # Tool schema for LLM
@@ -36,11 +28,11 @@ CALCULATOR_SCHEMA = {
         "properties": {
             "expression": {
                 "type": "string",
-                "description": "Mathematical expression to evaluate (e.g., '2 + 2', '10 * 5')"
+                "description": "Mathematical expression to evaluate (e.g., '2 + 2', '10 * 5')",
             }
         },
-        "required": ["expression"]
-    }
+        "required": ["expression"],
+    },
 }
 
 

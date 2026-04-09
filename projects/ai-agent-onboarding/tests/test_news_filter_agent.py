@@ -1,11 +1,36 @@
+import json
 import pytest
+from unittest.mock import AsyncMock, patch
 from src.agents.news_filter_agent import NewsFilterAgent
 from pathlib import Path
 import tempfile
 
 
+async def _fake_llm(prompt):
+    """Return deterministic JSON based on article title in the prompt."""
+    if "GPT-4" in prompt:
+        return json.dumps(
+            {
+                "relevant": True,
+                "relevance_score": 10,
+                "reasoning": "Major LLM release",
+                "key_topics": ["LLM", "GPT"],
+            }
+        )
+    else:
+        return json.dumps(
+            {
+                "relevant": False,
+                "relevance_score": 1,
+                "reasoning": "Web dev, not AI",
+                "key_topics": [],
+            }
+        )
+
+
 @pytest.mark.asyncio
-async def test_agent_filters_articles():
+@patch.object(NewsFilterAgent, "_call_llm", side_effect=_fake_llm)
+async def test_agent_filters_articles(mock_llm):
     """Test agent filters correctly."""
     # Create temp input file
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -40,8 +65,8 @@ React alternative for web development.
         # Should include GPT-4
         assert "GPT-4" in content
 
-        # Should not include JS framework (probably)
-        # Note: LLM behavior can vary
+        # Should not include JS framework
+        assert "JavaScript" not in content
 
 
 @pytest.mark.asyncio

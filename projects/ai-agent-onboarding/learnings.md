@@ -461,3 +461,61 @@ result = get_data()       # coroutine object (not executed yet)
 result = await get_data() # "hello" (actually runs)
 
 Any function that calls an async function must await it — this rule chains all the way up. Miss one await and you get the coroutine object instead of the result.
+
+# FastMcp
+This the framework that runs mcp , just like fastapi. We are using this new framework instead of the older one for easiness in development
+
+# Difference between old mcp asyncio.run(main())  vs mcp.run()
+# Old low-level approach -- you manage the event loop yourself
+async def main():
+    async with stdio_server() as (read, write):
+        await server.run(read, write, ...)
+
+asyncio.run(main())          # YOU create the event loop
+
+# FastMCP -- mcp.run() does it for you
+mcp.run() is synchronous -- it handles the async setup internally.
+
+Here's what happens under the hood:
+
+
+# Old low-level approach -- you manage the event loop yourself
+async def main():
+    async with stdio_server() as (read, write):
+        await server.run(read, write, ...)
+
+asyncio.run(main())          # YOU create the event loop
+
+# FastMCP -- mcp.run() does it for you
+Old low-level approach -- you manage the event loop yourself
+async def main():
+    async with stdio_server() as (read, write):
+        await server.run(read, write, ...)
+
+asyncio.run(main())          # YOU create the event loop
+
+#FastMCP -- mcp.run() does it for you
+mcp.run()                    # FastMCP creates the event loop internally
+mcp.run() is essentially a wrapper that:
+
+Creates an async event loop (asyncio.run(...) internally)
+Sets up the transport (stdio by default)
+Starts the server and blocks until shutdown
+So you don't need to write async def main() or call asyncio.run() yourself -- mcp.run() is a sync function that manages all the async machinery behind the scenes.
+
+That's why in the FastMCP server you can just end with:
+
+
+if __name__ == "__main__":
+    mcp.run()          # sync call, blocks until server stops
+Instead of:
+
+
+if __name__ == "__main__":
+    asyncio.run(main())  # you had to wire up the async boilerplate yourself
+TL;DR: mcp.run() is sync on the outside, async on the inside. One less thing to manage.
+
+
+
+
+# What does a hit mean

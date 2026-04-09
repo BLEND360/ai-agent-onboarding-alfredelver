@@ -10,3 +10,6 @@ python-dotenv
 pytest-asyncio
 google-genai
 bs4
+mcp
+mcp[cli]
+aiosqlite

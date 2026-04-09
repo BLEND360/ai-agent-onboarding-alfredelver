@@ -1,5 +1,5 @@
-
 "fetching articles from the RSS feeds"
+
 import asyncio
 import feedparser
 from typing import List
@@ -9,47 +9,46 @@ from src.models.articles import Article
 from src.storage.markdown_storage import MarkdownStorage
 from src.fetchers.base_fetcher import BaseFetcher
 
+
 class RSSFetcher(BaseFetcher):
     """
     Fetches articles from RSS feeds.
-    
+
     Uses feedparser library for RSS parsing.
     """
 
-    def __init__(self,feed_url:str,transformer,storage):
+    def __init__(self, feed_url: str, transformer, storage):
         """
         Initialize RSS fetcher.
-        
+
         Args:
             feed_url: URL of RSS feed
         """
         super().__init__(transformer, storage)
         self.feed_url = feed_url
-    
-    async def fetch_articles(self)->List[Article]:
+
+    async def fetch_articles(self) -> List[Article]:
         feed = feedparser.parse(self.feed_url)
 
         return self.transformer.transform_rss(feed.entries)
-    
+
     def get_source_name(self) -> str:
         """Return source name."""
         return "rss"
 
-    async def fetch(self)-> List[Article]:
+    async def fetch(self) -> List[Article]:
         """
         Fetch articles from RSS feed.
-        
+
         Returns:
             List of Article objects
         """
-        print(f'fetching from url{self.feed_url}')
+        print(f"fetching from url{self.feed_url}")
 
         # feedparser is sync m running in executor
         loop = asyncio.get_event_loop()
         feed = await loop.run_in_executor(
-            None, # default executor
-            feedparser.parse,
-            self.feed_url
+            None, feedparser.parse, self.feed_url  # default executor
         )
         # parse entires
         articles = []
@@ -59,20 +58,20 @@ class RSSFetcher(BaseFetcher):
                 articles.append(article)
         print(f"Fetched {len(articles)} RSS articles")
         return articles
-    
-    def _parse_entry(self,entry) -> Article:
+
+    def _parse_entry(self, entry) -> Article:
         """Parse RSS entry to Article."""
         try:
             # Get title
-            title = entry.get('title', 'No Title')
-            
+            title = entry.get("title", "No Title")
+
             # Get URL
-            url = entry.get('link', '')
+            url = entry.get("link", "")
             if not url:
                 return None
-            
+
             # Parse date
-            published_str = entry.get('published', entry.get('updated', ''))
+            published_str = entry.get("published", entry.get("updated", ""))
             if published_str:
                 try:
                     published_at = date_parser.parse(published_str)
@@ -80,34 +79,37 @@ class RSSFetcher(BaseFetcher):
                     published_at = datetime.now()
             else:
                 published_at = datetime.now()
-            
+
             # Get summary
-            summary = entry.get('summary', entry.get('description', ''))
+            summary = entry.get("summary", entry.get("description", ""))
             # Clean HTML tags (basic)
             import re
-            summary = re.sub('<.*?>', '', summary)[:200]
-            
+
+            summary = re.sub("<.*?>", "", summary)[:200]
+
             return Article(
                 title=title,
                 url=url,
                 published_at=published_at,
-                source='rss',
-                summary=summary
+                source="rss",
+                summary=summary,
             )
         except Exception as e:
             print(f"Failed to parse entry: {e}")
             return None
-    async def fetch_and_save(self)-> List[Article]:
+
+    async def fetch_and_save(self) -> List[Article]:
         """Fetch and save articles."""
         articles = await self.fetch()
         if articles:
             # Extract feed name from URL
-            feed_name = self.feed_url.split('//')[-1].split('/')[0]
+            feed_name = self.feed_url.split("//")[-1].split("/")[0]
             filename = f"rss_{feed_name}_articles.md"
             self.storage.save(articles, filename)
-        
+
         return articles
-    
+
+
 # testing
 async def test_rss():
     """Test RSs fetcher"""
